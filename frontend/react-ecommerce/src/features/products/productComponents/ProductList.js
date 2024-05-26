@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { increment, incrementAsync, selectCount } from "../productSlice";
+import {
+  fetchAllProductAsync,
+  fetchProductsByFiltersAsync,
+  selectAllProducts,
+} from "../productSlice";
 import { Fragment } from "react";
 import { Dialog, Disclosure, Menu, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -10,51 +14,106 @@ import {
   MinusIcon,
   PlusIcon,
   Squares2X2Icon,
+  StarIcon,
 } from "@heroicons/react/20/solid";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import { Link } from "react-router-dom";
 
 const sortOptions = [
-  { name: "Most Popular", href: "#", current: true },
-  { name: "Best Rating", href: "#", current: false },
-  { name: "Newest", href: "#", current: false },
-  { name: "Price: Low to High", href: "#", current: false },
-  { name: "Price: High to Low", href: "#", current: false },
+  { name: "Best Rating", sort: "-rating", order: "desc", current: false },
+  { name: "Price: Low to High", sort: "price", order: "asc", current: false },
+  { name: "Price: High to Low", sort: "-price", order: "desc", current: false },
 ];
 
 const filters = [
   {
-    id: "color",
-    name: "Color",
+    id: "brand",
+    name: "Brands",
     options: [
-      { value: "white", label: "White", checked: false },
-      { value: "beige", label: "Beige", checked: false },
-      { value: "blue", label: "Blue", checked: true },
-      { value: "brown", label: "Brown", checked: false },
-      { value: "green", label: "Green", checked: false },
-      { value: "purple", label: "Purple", checked: false },
+      {
+        value: "Essence",
+        label: "Essence",
+        checked: false,
+      },
+      {
+        value: "Glamour-Beauty",
+        label: "Glamour Beauty",
+        checked: false,
+      },
+      {
+        value: "Velvet-Touch",
+        label: "Velvet Touch",
+        checked: false,
+      },
+      {
+        value: "Chic-Cosmetics",
+        label: "Chic Cosmetics",
+        checked: false,
+      },
+      {
+        value: "Nail-Couture",
+        label: "Nail Couture",
+        checked: false,
+      },
+      {
+        value: "Calvin-Klein",
+        label: "Calvin Klein",
+        checked: false,
+      },
+      {
+        value: "Chanel",
+        label: "Chanel",
+        checked: false,
+      },
+      {
+        value: "Dior",
+        label: "Dior",
+        checked: false,
+      },
+      {
+        value: "Dolce & Gabbana",
+        label: "Dolce & Gabbana",
+        checked: false,
+      },
+      {
+        value: "Gucci",
+        label: "Gucci",
+        checked: false,
+      },
+      {
+        value: "Annibale-Colombo",
+        label: "Annibale Colombo",
+        checked: false,
+      },
+      {
+        value: "Furniture-Co.",
+        label: "Furniture Co.",
+        checked: false,
+      },
+      {
+        value: "Knoll",
+        label: "Knoll",
+        checked: false,
+      },
+      {
+        value: "Bath-Trends",
+        label: "Bath Trends",
+        checked: false,
+      },
     ],
   },
   {
     id: "category",
     name: "Category",
     options: [
-      { value: "new-arrivals", label: "New Arrivals", checked: false },
-      { value: "sale", label: "Sale", checked: false },
-      { value: "travel", label: "Travel", checked: true },
-      { value: "organization", label: "Organization", checked: false },
-      { value: "accessories", label: "Accessories", checked: false },
-    ],
-  },
-  {
-    id: "size",
-    name: "Size",
-    options: [
-      { value: "2l", label: "2L", checked: false },
-      { value: "6l", label: "6L", checked: false },
-      { value: "12l", label: "12L", checked: false },
-      { value: "18l", label: "18L", checked: false },
-      { value: "20l", label: "20L", checked: false },
-      { value: "40l", label: "40L", checked: true },
+      { value: "smartphones", label: "smartphones", checked: false },
+      { value: "laptops", label: "laptops", checked: false },
+      { value: "fragrances", label: "fragrances", checked: false },
+      { value: "skincare", label: "skincare", checked: false },
+      { value: "groceries", label: "groceries", checked: false },
+      { value: "beauty", label: "beauty", checked: false },
+      { value: "furniture", label: "furniture", checked: false },
+      { value: "home-decoration", label: "home decoration", checked: false },
     ],
   },
 ];
@@ -65,51 +124,27 @@ function classNames(...classes) {
 
 export default function ProductList() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const count = useSelector(selectCount);
+  const products = useSelector(selectAllProducts);
+  const [filter, setFilter] = useState({});
   const dispatch = useDispatch();
-  const products = [
-    {
-      id: 1,
-      name: "Basic Tee",
-      href: "#",
-      imageSrc:
-        "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-01.jpg",
-      imageAlt: "Front of men's Basic Tee in black.",
-      price: "$35",
-      color: "Black",
-    },
-    {
-      id: 2,
-      name: "Basic Tee",
-      href: "#",
-      imageSrc:
-        "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-01.jpg",
-      imageAlt: "Front of men's Basic Tee in black.",
-      price: "$35",
-      color: "Black",
-    },
-    {
-      id: 3,
-      name: "Basic Tee",
-      href: "#",
-      imageSrc:
-        "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-01.jpg",
-      imageAlt: "Front of men's Basic Tee in black.",
-      price: "$35",
-      color: "Black",
-    },
-    {
-      id: 4,
-      name: "Basic Tee",
-      href: "#",
-      imageSrc:
-        "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-01.jpg",
-      imageAlt: "Front of men's Basic Tee in black.",
-      price: "$35",
-      color: "Black",
-    },
-    // More products...
-  ];
+
+  const handleFilter = (e, section, option) => {
+    const newFilter = { ...filter, [section.id]: option.value };
+    console.log("newfilter", newFilter);
+    setFilter(newFilter);
+    dispatch(fetchProductsByFiltersAsync(newFilter));
+    // console.log(section.id, option.value);
+  };
+
+  const handleSort = (e, option) => {
+    const newFilter = { ...filter, _sort: option.sort };
+    setFilter(newFilter);
+    dispatch(fetchProductsByFiltersAsync(newFilter));
+  };
+
+  useEffect(() => {
+    dispatch(fetchAllProductAsync());
+  }, [dispatch]);
 
   return (
     <div>
@@ -203,6 +238,9 @@ export default function ProductList() {
                                         defaultValue={option.value}
                                         type="checkbox"
                                         defaultChecked={option.checked}
+                                        onChange={(e) =>
+                                          handleFilter(e, section, option)
+                                        }
                                         className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                       />
                                       <label
@@ -258,8 +296,9 @@ export default function ProductList() {
                         {sortOptions.map((option) => (
                           <Menu.Item key={option.name}>
                             {({ active }) => (
-                              <a
-                                href={option.href}
+                              <p
+                                href={option.sort}
+                                onClick={(e) => handleSort(e, option)}
                                 className={classNames(
                                   option.current
                                     ? "font-medium text-gray-900"
@@ -269,7 +308,7 @@ export default function ProductList() {
                                 )}
                               >
                                 {option.name}
-                              </a>
+                              </p>
                             )}
                           </Menu.Item>
                         ))}
@@ -347,6 +386,9 @@ export default function ProductList() {
                                     defaultValue={option.value}
                                     type="checkbox"
                                     defaultChecked={option.checked}
+                                    onChange={(e) =>
+                                      handleFilter(e, section, option)
+                                    }
                                     className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                   />
                                   <label
@@ -370,36 +412,53 @@ export default function ProductList() {
                   {/*  This our product List */}
                   <div className="bg-white">
                     <div className="mx-auto max-w-2xl px-4 py-0 sm:px-6 sm:py-0 lg:max-w-7xl lg:px-8">
-                      <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+                      <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
                         {products.map((product) => (
-                          <div key={product.id} className="group relative">
-                            <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
-                              <img
-                                src={product.imageSrc}
-                                alt={product.imageAlt}
-                                className="h-full w-full object-cover object-center lg:h-full lg:w-full"
-                              />
-                            </div>
-                            <div className="mt-4 flex justify-between">
-                              <div>
-                                <h3 className="text-sm text-gray-700">
-                                  <a href={product.href}>
-                                    <span
-                                      aria-hidden="true"
-                                      className="absolute inset-0"
-                                    />
-                                    {product.name}
-                                  </a>
-                                </h3>
-                                <p className="mt-1 text-sm text-gray-500">
-                                  {product.color}
-                                </p>
+                          <Link to="/product-detail">
+                            <div
+                              key={product.id}
+                              className="group relative border-solid border-gray-200 p-3 border-[1px]"
+                            >
+                              <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-60">
+                                <img
+                                  src={product.thumbnail}
+                                  alt={product.title}
+                                  className="h-full w-full object-cover object-center lg:h-full lg:w-full"
+                                />
                               </div>
-                              <p className="text-sm font-medium text-gray-900">
-                                {product.price}
-                              </p>
+                              <div className="mt-4 flex justify-between">
+                                <div>
+                                  <h3 className="text-sm text-gray-700">
+                                    <a href={product.thumbnail}>
+                                      <span
+                                        aria-hidden="true"
+                                        className="absolute inset-0"
+                                      />
+                                      {product.title}
+                                    </a>
+                                  </h3>
+                                  <p className="mt-1 text-sm text-gray-500">
+                                    <StarIcon className="w-5 h-5 inline-block"></StarIcon>
+                                    <span className="align-bottom">
+                                      {product.rating}
+                                    </span>
+                                  </p>
+                                </div>
+                                <div className="">
+                                  <p className="text-sm font-medium text-gray-500 line-through">
+                                    ${product.price}
+                                  </p>
+                                  <p className="text-sm mt-1 font-medium text-gray-900">
+                                    $
+                                    {Math.round(
+                                      product.price *
+                                        (1 - product.discountPercentage / 100)
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
-                          </div>
+                          </Link>
                         ))}
                       </div>
                     </div>

@@ -10,6 +10,7 @@ import SignupPage from "./pages/SignupPage";
 import { Routes, Route } from "react-router-dom";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/product-detail" element={<ProductDetailPage />} />
       </Routes>
     </>
   );
