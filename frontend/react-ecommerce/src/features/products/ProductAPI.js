@@ -26,7 +26,7 @@ export function fetchProductsByFilters(filter, sort, pagination) {
   }
 
   for (let key in pagination) {
-    queryString += `${key}`;
+    queryString += `${key}=${pagination[key]}&`;
   }
 
   console.log("http://localhost:8080/products?" + queryString);
@@ -35,6 +35,8 @@ export function fetchProductsByFilters(filter, sort, pagination) {
       "http://localhost:8080/products?" + queryString
     );
     const data = await response.json();
+
+    console.log(data);
     resolve({ data });
   });
 }

@@ -122,11 +122,16 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
+let item_per_page = 10;
 export default function ProductList() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const products = useSelector(selectAllProducts);
+  let totalItems = products.items;
   const [filter, setFilter] = useState({});
   const [sort, setSort] = useState({});
+  const [page, setPage] = useState(1);
+  console.log(products);
+
   const dispatch = useDispatch();
 
   const handleFilter = (e, section, option) => {
@@ -155,9 +160,19 @@ export default function ProductList() {
     setSort(newsort);
   };
 
+  const handlePage = (e, page) => {
+    console.log(page);
+    setPage(page);
+  };
+
   useEffect(() => {
-    dispatch(fetchProductsByFiltersAsync({ filter, sort }));
-  }, [dispatch, filter, sort]);
+    const pagination = { _page: page, _per_page: item_per_page };
+    dispatch(fetchProductsByFiltersAsync({ filter, sort, pagination }));
+  }, [dispatch, filter, sort, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [totalItems, sort]);
 
   return (
     <div>
@@ -264,7 +279,12 @@ export default function ProductList() {
 
             {/* pagination */}
             <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
-              <Pagination />
+              <Pagination
+                page={page}
+                setPage={setPage}
+                handlePage={handlePage}
+                totalItems={totalItems}
+              />
             </div>
           </main>
         </div>
@@ -454,10 +474,10 @@ function DesktopFilter({ handleFilter }) {
   );
 }
 
-function Pagination() {
+function Pagination({ page, setPage, handlePage, totalItems }) {
   return (
     <>
-      <div className="flex flex-1 justify-between sm:hidden">
+      {/* <div className="flex flex-1 justify-between sm:hidden">
         <a
           href="#"
           className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -470,18 +490,26 @@ function Pagination() {
         >
           Next
         </a>
-      </div>
+      </div> */}
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-gray-700">
-            Showing <span className="font-medium">1</span> to{" "}
-            <span className="font-medium">10</span> of{" "}
-            <span className="font-medium">97</span> results
+            Showing{" "}
+            <span className="font-medium">
+              {(page - 1) * item_per_page + 1}{" "}
+            </span>{" "}
+            to{" "}
+            <span className="font-medium">
+              {page * item_per_page > totalItems
+                ? totalItems
+                : page * item_per_page}{" "}
+            </span>{" "}
+            of <span className="font-medium">{totalItems} </span> results
           </p>
         </div>
         <div>
           <nav
-            className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+            className=" isolate inline-flex -space-x-px rounded-md shadow-sm"
             aria-label="Pagination"
           >
             <a
@@ -491,20 +519,23 @@ function Pagination() {
               <span className="sr-only">Previous</span>
               <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
             </a>
+            {Array.from({ length: Math.ceil(totalItems / item_per_page) }).map(
+              (el, index) => (
+                <div
+                  onClick={(e) => handlePage(e, index + 1)}
+                  aria-current="page"
+                  className={`relative z-10 inline-flex items-center cursor-pointer ${
+                    index + 1 === page
+                      ? "bg-indigo-600 text-white"
+                      : "text-gray-400 border-y-2"
+                  }  border-l-[1px]  px-4 py-2 text-sm font-semibold  focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600`}
+                >
+                  {index + 1}
+                </div>
+              )
+            )}
+
             {/* Current: "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600", Default: "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0" */}
-            <a
-              href="#"
-              aria-current="page"
-              className="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            >
-              1
-            </a>
-            <a
-              href="#"
-              className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-            >
-              2
-            </a>
 
             <a
               href="#"
@@ -526,50 +557,55 @@ function ProductGrid({ products }) {
       <div className="bg-white">
         <div className="mx-auto max-w-2xl px-4 py-0 sm:px-6 sm:py-0 lg:max-w-7xl lg:px-8">
           <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
-            {products.map((product) => (
-              <Link to="/product-detail">
-                <div
-                  key={product.id}
-                  className="group relative border-solid border-gray-200 p-3 border-[1px]"
-                >
-                  <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-60">
-                    <img
-                      src={product.thumbnail}
-                      alt={product.title}
-                      className="h-full w-full object-cover object-center lg:h-full lg:w-full"
-                    />
-                  </div>
-                  <div className="mt-4 flex justify-between">
-                    <div>
-                      <h3 className="text-sm text-gray-700">
-                        <a href={product.thumbnail}>
-                          <span
-                            aria-hidden="true"
-                            className="absolute inset-0"
-                          />
-                          {product.title}
-                        </a>
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        <StarIcon className="w-5 h-5 inline-block"></StarIcon>
-                        <span className="align-bottom">{product.rating}</span>
-                      </p>
+            {products.data != undefined
+              ? products.data.map((product) => (
+                  <Link to="/product-detail">
+                    <div
+                      key={product.id}
+                      className="group relative border-solid border-gray-200 p-3 border-[1px]"
+                    >
+                      <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-60">
+                        <img
+                          src={product.thumbnail}
+                          alt={product.title}
+                          className="h-full w-full object-cover object-center lg:h-full lg:w-full"
+                        />
+                      </div>
+                      <div className="mt-4 flex justify-between">
+                        <div>
+                          <h3 className="text-sm text-gray-700">
+                            <a href={product.thumbnail}>
+                              <span
+                                aria-hidden="true"
+                                className="absolute inset-0"
+                              />
+                              {product.title}
+                            </a>
+                          </h3>
+                          <p className="mt-1 text-sm text-gray-500">
+                            <StarIcon className="w-5 h-5 inline-block"></StarIcon>
+                            <span className="align-bottom">
+                              {product.rating}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="">
+                          <p className="text-sm font-medium text-gray-500 line-through">
+                            ${product.price}
+                          </p>
+                          <p className="text-sm mt-1 font-medium text-gray-900">
+                            $
+                            {Math.round(
+                              product.price *
+                                (1 - product.discountPercentage / 100)
+                            )}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="">
-                      <p className="text-sm font-medium text-gray-500 line-through">
-                        ${product.price}
-                      </p>
-                      <p className="text-sm mt-1 font-medium text-gray-900">
-                        $
-                        {Math.round(
-                          product.price * (1 - product.discountPercentage / 100)
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                  </Link>
+                ))
+              : ""}
           </div>
         </div>
       </div>
