@@ -11,17 +11,47 @@ import { Routes, Route } from "react-router-dom";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import Protected from "./features/auth/Protected";
 
 function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route
+          path="/"
+          element={
+            <Protected>
+              <Home />{" "}
+            </Protected>
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/product-detail/:id" element={<ProductDetailPage />} />
+        <Route
+          path="/cart"
+          element={
+            <Protected>
+              <CartPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <Protected>
+              <CheckoutPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/product-detail/:id"
+          element={
+            <Protected>
+              {" "}
+              <ProductDetailPage />
+            </Protected>
+          }
+        />
       </Routes>
     </>
   );
