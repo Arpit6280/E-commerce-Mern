@@ -43,6 +43,7 @@ function Signup() {
                   email: data.email,
                   name: data.email,
                   password: data.password,
+                  addresses: [],
                 })
               );
               console.log(data);
